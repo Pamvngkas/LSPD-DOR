@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSPD Daily Occurrence Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;
+    --card-border:#e4e4e4;
+    --line:#2b2b2b;
+    --line-soft:#dcdcdc;
+    --label-gray:#7c8798;
+    --heading-gray:#8a94a3;
+    --ink:#2c2f34;
+    --navy:#173a63;
+    --gold:#a9822f;
+    --check-bg:#eef0f3;
+    --check-border:#c7ccd4;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    padding:32px 16px 80px;
+    background:#eceeef;
+    font-family:'Courier New', 'Courier Prime', monospace;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  #capture-area{
+    width:820px;
+    max-width:100%;
+    background:var(--bg);
+    border:1px solid var(--card-border);
+    border-radius:6px;
+    box-shadow:0 20px 45px rgba(0,0,0,0.14);
+    padding:44px 52px 36px;
+  }
+
+  .badge-wrap{
+    display:flex;
+    justify-content:center;
+    margin-bottom:18px;
+  }
+
+  h1.dept-name{
+    text-align:center;
+    font-family:'Oswald', sans-serif;
+    font-size:23px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    color:var(--heading-gray);
+    text-transform:uppercase;
+    margin:0 0 6px;
+  }
+  h2.doc-name{
+    text-align:center;
+    font-family:'Oswald', sans-serif;
+    font-size:16px;
+    font-weight:600;
+    letter-spacing:1.5px;
+    color:var(--heading-gray);
+    text-transform:uppercase;
+    margin:0 0 28px;
+  }
+
+  .info-row{
+    display:flex;
+    gap:34px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+  .info-field{
+    flex:1;
+    min-width:190px;
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+    border-bottom:1px solid var(--line-soft);
+    padding-bottom:6px;
+  }
+  .info-field label{
+    font-family:'Oswald', sans-serif;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.6px;
+    color:var(--ink);
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .info-field input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:'Courier New', monospace;
+    font-size:13.5px;
+    color:var(--ink);
+    padding:2px 2px;
+  }
+  .info-field input::placeholder{color:#b6bcc4;}
+
+  .divider{
+    height:2px;
+    background:var(--line);
+    margin:22px 0 20px;
+  }
+
+  .section-label{
+    font-family:'Oswald', sans-serif;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:1px;
+    color:var(--heading-gray);
+    text-transform:uppercase;
+    margin-bottom:12px;
+  }
+
+  .instruction-text{
+    font-family:'Courier New', monospace;
+    font-size:12.5px;
+    line-height:1.85;
+    color:var(--ink);
+    margin-bottom:4px;
+  }
+
+  table.log-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:6px;
+  }
+  table.log-table thead th{
+    font-family:'Oswald', sans-serif;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.8px;
+    color:#9aa2ad;
+    text-transform:uppercase;
+    text-align:left;
+    padding:0 10px 10px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  table.log-table thead th.center{text-align:center;}
+  table.log-table tbody td{
+    padding:12px 10px;
+    border-bottom:1px solid var(--line-soft);
+    font-family:'Courier New', monospace;
+    font-size:13px;
+    color:var(--ink);
+  }
+  table.log-table tbody tr:last-child td{border-bottom:none;}
+  table.log-table td.center{text-align:center;}
+  table.log-table td.type-col{width:46%;}
+  table.log-table td.count-col{width:16%;}
+  table.log-table td.chk-col{width:19%;}
+
+  .count-input{
+    width:56px;
+    text-align:center;
+    border:none;
+    border-bottom:1px solid var(--line-soft);
+    outline:none;
+    background:transparent;
+    font-family:'Courier New', monospace;
+    font-size:13px;
+    color:var(--ink);
+    padding:2px 0;
+  }
+
+  .chk{
+    width:19px;height:19px;
+    border-radius:4px;
+    border:1px solid var(--check-border);
+    background:var(--check-bg);
+    margin:0 auto;
+    position:relative;
+    cursor:pointer;
+  }
+  .chk.checked::after{
+    content:"✓";
+    position:absolute;
+    top:-3px; left:3px;
+    font-size:13px;
+    font-weight:800;
+    color:var(--navy);
+  }
+
+  .narrative-block{
+    margin-top:4px;
+  }
+  .narrative-block textarea{
+    width:100%;
+    min-height:110px;
+    border:none;
+    outline:none;
+    resize:vertical;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 27px,
+      var(--line-soft) 28px
+    );
+    line-height:28px;
+    font-family:'Courier New', monospace;
+    font-size:13px;
+    color:var(--ink);
+    padding-top:2px;
+  }
+  .narrative-block textarea::placeholder{color:#b6bcc4;}
+
+  table.sign-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:4px;
+  }
+  table.sign-table th{
+    font-family:'Oswald', sans-serif;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.8px;
+    color:#9aa2ad;
+    text-transform:uppercase;
+    text-align:left;
+    padding:0 10px 10px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  table.sign-table td{
+    padding:12px 10px 4px;
+    font-family:'Courier New', monospace;
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  table.sign-table td input{
+    width:100%;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:'Courier New', monospace;
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  table.sign-table td:first-child{border-right:1px solid var(--line-soft); width:75%;}
+
+  .foot-strip{
+    height:2px;
+    background:var(--line);
+    margin-top:26px;
+  }
+
+  .controls{
+    width:820px;
+    max-width:100%;
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin-top:22px;
+  }
+  .controls button{
+    font-family:'Oswald', sans-serif;
+    letter-spacing:1px;
+    font-size:13px;
+    font-weight:600;
+    text-transform:uppercase;
+    padding:12px 26px;
+    border:none;
+    border-radius:4px;
+    cursor:pointer;
+    transition:transform 0.12s ease, filter 0.12s ease;
+  }
+  .controls button:hover{filter:brightness(1.08);}
+  .controls button:active{transform:translateY(1px);}
+  #export-btn{
+    background:var(--navy);
+    color:#fff;
+  }
+  #reset-btn{
+    background:#e2e2e2;
+    color:#333;
+  }
+
+  .hint{
+    width:820px;
+    max-width:100%;
+    text-align:center;
+    color:#888;
+    font-size:11.5px;
+    margin-top:10px;
+    font-family:'Oswald', sans-serif;
+    letter-spacing:0.3px;
+  }
+
+  @media (max-width:860px){
+    #capture-area{padding:30px 22px 26px;}
+    .info-row{flex-direction:column; gap:14px;}
+    table.log-table{font-size:11px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="capture-area">
+
+  <div class="badge-wrap">
+  <img src="LSPD.png" alt="">
+  </div>
+
+  <h1 class="dept-name">Los Santos Police Department</h1>
+  <h2 class="doc-name">Daily Occurrence Report</h2>
+
+  <div class="info-row">
+    <div class="info-field"><label>Officer Full Name:</label><input type="text"></div>
+    <div class="info-field"><label>Shift Start:</label><input type="text" placeholder="HH:MM"></div>
+    <div class="info-field"><label>Division:</label><input type="text"></div>
+  </div>
+  <div class="info-row">
+    <div class="info-field"><label>Partner Full Name:</label><input type="text"></div>
+    <div class="info-field"><label>Shift End:</label><input type="text" placeholder="HH:MM"></div>
+    <div class="info-field"><label>Date:</label><input type="text" placeholder="YYYY-MM-DD"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-label">Report Instruction</div>
+  <div class="instruction-text">
+    Record the number of incidents that occurred under each category throughout the shift in the “COUNT” column. Check the “N.O.” column if the category did not occur at all during the shift. Check the “N.R.T.” column if the incident requires further review by a supervisor.
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-label">Occurrence Log</div>
+  <table class="log-table">
+    <thead>
+      <tr>
+        <th>Occurrence Type</th>
+        <th class="center">Count</th>
+        <th class="center">N.O.</th>
+        <th class="center">N.R.T.</th>
+      </tr>
+    </thead>
+    <tbody id="log-body">
+      <tr><td class="type-col">Citation Issued</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+      <tr><td class="type-col">Warning Issued</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+      <tr><td class="type-col">Arrest Made</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+      <tr><td class="type-col">Vehicular Pursuit (VPRT)</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+      <tr><td class="type-col">Use of Force (UOF)</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+      <tr><td class="type-col">Firearm Discharged (F/D)</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+      <tr><td class="type-col">Officer Injury (INJ)</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+      <tr><td class="type-col">Property Damage (PROP)</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+      <tr><td class="type-col">Other (OTHR)</td><td class="count-col center"><input type="text" class="count-input"></td><td class="chk-col center"><div class="chk"></div></td><td class="chk-col center"><div class="chk"></div></td></tr>
+    </tbody>
+  </table>
+
+  <div class="divider"></div>
+
+  <div class="section-label">Narrative</div>
+  <div class="narrative-block">
+    <textarea placeholder="Summary of significant incidents that occurred throughout the shift."></textarea>
+  </div>
+
+  <div class="divider"></div>
+
+  <table class="sign-table">
+    <thead>
+      <tr><th>Reporting Officer</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text"></td>
+        <td><input type="text" placeholder="YYYY-MM-DD"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="foot-strip"></div>
+
+</div>
+
+<div class="controls">
+  <button id="export-btn">💾 Export ke JPG</button>
+  <button id="reset-btn">↺ Reset Form</button>
+</div>
+<div class="hint">Isi form di atas lalu klik "Export ke JPG" untuk mengunduh laporan sebagai gambar.</div>
+
+<script>
+  document.querySelectorAll('.chk').forEach(box => {
+    box.addEventListener('click', () => box.classList.toggle('checked'));
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    document.querySelectorAll('#capture-area input[type=text], #capture-area textarea').forEach(el => el.value = '');
+    document.querySelectorAll('.chk.checked').forEach(el => el.classList.remove('checked'));
+  });
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    const target = document.getElementById('capture-area');
+    const btn = document.getElementById('export-btn');
+    const originalText = btn.textContent;
+    btn.textContent = 'Memproses...';
+    btn.disabled = true;
+
+    const inputs = target.querySelectorAll('input[type=text]');
+    const textareas = target.querySelectorAll('textarea');
+    const replaced = [];
+
+    inputs.forEach(inp => {
+      const isCount = inp.classList.contains('count-input');
+      const span = document.createElement('span');
+      span.textContent = inp.value || '';
+      span.style.fontFamily = "'Courier New', monospace";
+      span.style.fontSize = isCount ? '13px' : '13.5px';
+      span.style.display = 'inline-block';
+      span.style.minHeight = '16px';
+      if(isCount){
+        span.style.width = '56px';
+        span.style.textAlign = 'center';
+        span.style.borderBottom = '1px solid #dcdcdc';
+        span.style.padding = '2px 0';
+      } else {
+        span.style.width = '100%';
+        span.style.borderBottom = inp.closest('.info-field') ? 'none' : 'none';
+        span.style.padding = '2px 2px';
+      }
+      inp.style.display = 'none';
+      inp.parentNode.insertBefore(span, inp);
+      replaced.push({el: inp, temp: span});
+    });
+
+    textareas.forEach(ta => {
+      const div = document.createElement('div');
+      div.textContent = ta.value || '';
+      div.style.whiteSpace = 'pre-wrap';
+      div.style.fontFamily = "'Courier New', monospace";
+      div.style.fontSize = '13px';
+      div.style.lineHeight = '28px';
+      div.style.minHeight = ta.offsetHeight + 'px';
+      div.style.backgroundImage = 'repeating-linear-gradient(to bottom, transparent, transparent 27px, #dcdcdc 28px)';
+      ta.style.display = 'none';
+      ta.parentNode.insertBefore(div, ta);
+      replaced.push({el: ta, temp: div});
+    });
+
+    html2canvas(target, {scale: 2, backgroundColor: '#ffffff', useCORS: true}).then(canvas => {
+      replaced.forEach(r => {
+        r.el.style.display = '';
+        r.temp.remove();
+      });
+      btn.textContent = originalText;
+      btn.disabled = false;
+
+      const link = document.createElement('a');
+      link.download = `DOR_LSPD_${Date.now()}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      link.click();
+    }).catch(err => {
+      replaced.forEach(r => {
+        r.el.style.display = '';
+        r.temp.remove();
+      });
+      btn.textContent = originalText;
+      btn.disabled = false;
+      alert('Gagal mengekspor gambar. Coba lagi.');
+      console.error(err);
+    });
+  });
+</script>
+
+</body>
+</html>
